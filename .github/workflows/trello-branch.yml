@@ -1,0 +1,25 @@
+name: Branch to Trello
+on: create
+
+jobs:
+  attach:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Attach branch to card
+        env:
+          TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          ID=$(echo "$BRANCH" | sed -nE 's#^[^/]+/([A-Za-z0-9]{8})-.*#\1#p')
+          if [ -n "$ID" ]; then
+            curl -sf -X POST "https://api.trello.com/1/cards/$ID/attachments" \
+              --data-urlencode "key=$TRELLO_KEY" \
+              --data-urlencode "token=$TRELLO_TOKEN" \
+              --data-urlencode "url=https://github.com/$REPO/tree/$BRANCH" \
+              --data-urlencode "name=Branch: $BRANCH"
+          else
+            echo "No Trello card ID in branch name, skipping."
+          fi
