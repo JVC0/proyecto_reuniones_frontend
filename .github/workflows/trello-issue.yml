@@ -21,13 +21,19 @@ jobs:
           URL: ${{ github.event.issue.html_url }}
           REPO: ${{ github.repository }}
         run: |
-          RESP=$(curl -sf -X POST "https://api.trello.com/1/cards" \
+          OUT=$(curl -s -w "\n%{http_code}" -X POST "https://api.trello.com/1/cards" \
             --data-urlencode "key=$TRELLO_KEY" \
             --data-urlencode "token=$TRELLO_TOKEN" \
             --data-urlencode "idList=$TRELLO_LIST_ID" \
             --data-urlencode "name=[$REPO] $TITLE" \
             --data-urlencode "desc=$BODY" \
             --data-urlencode "urlSource=$URL")
+          CODE=$(echo "$OUT" | tail -n1)
+          RESP=$(echo "$OUT" | sed '$d')
+          if [ "$CODE" -ge 400 ]; then
+            echo "Trello devolvió $CODE: $RESP"
+            exit 1
+          fi
           echo "short=$(echo "$RESP" | jq -r .shortLink)" >> "$GITHUB_OUTPUT"
           echo "url=$(echo "$RESP" | jq -r .shortUrl)" >> "$GITHUB_OUTPUT"
 
