@@ -1,0 +1,42 @@
+name: Issue to Trello
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  create-card:
+    if: ${{ !contains(github.event.issue.body, 'trello.com/c/') }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create Trello card
+        id: card
+        env:
+          TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+          TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_ID }}
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+          URL: ${{ github.event.issue.html_url }}
+          REPO: ${{ github.repository }}
+        run: |
+          RESP=$(curl -sf -X POST "https://api.trello.com/1/cards" \
+            --data-urlencode "key=$TRELLO_KEY" \
+            --data-urlencode "token=$TRELLO_TOKEN" \
+            --data-urlencode "idList=$TRELLO_LIST_ID" \
+            --data-urlencode "name=[$REPO] $TITLE" \
+            --data-urlencode "desc=$BODY" \
+            --data-urlencode "urlSource=$URL")
+          echo "short=$(echo "$RESP" | jq -r .shortLink)" >> "$GITHUB_OUTPUT"
+          echo "url=$(echo "$RESP" | jq -r .shortUrl)" >> "$GITHUB_OUTPUT"
+
+      - name: Comment card link on the issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARD_URL: ${{ steps.card.outputs.url }}
+          CARD_SHORT: ${{ steps.card.outputs.short }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" \
+            --repo "${{ github.repository }}" \
+            --body "Trello card: $CARD_URL"$'\n'"Suggested branch name: \`feature/$CARD_SHORT-short-description\`"
