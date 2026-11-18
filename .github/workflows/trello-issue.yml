@@ -9,40 +9,77 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
+      contents: write
     steps:
-      - name: Create Trello card
-        id: card
+      - name: Create card, labels and branch
         env:
           TRELLO_KEY: ${{ secrets.TRELLO_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
           TRELLO_LIST_ID: ${{ secrets.TRELLO_LIST_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TITLE: ${{ github.event.issue.title }}
           BODY: ${{ github.event.issue.body }}
           URL: ${{ github.event.issue.html_url }}
+          NUMBER: ${{ github.event.issue.number }}
+          LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
           REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          OUT=$(curl -s -w "\n%{http_code}" -X POST "https://api.trello.com/1/cards" \
-            --data-urlencode "key=$TRELLO_KEY" \
-            --data-urlencode "token=$TRELLO_TOKEN" \
+          set -eo pipefail
+          API="https://api.trello.com/1"
+
+          trello() {
+            local method=$1 path=$2; shift 2
+            local out code
+            out=$(curl -s -w "\n%{http_code}" -X "$method" "$API$path" \
+              --data-urlencode "key=$TRELLO_KEY" \
+              --data-urlencode "token=$TRELLO_TOKEN" "$@")
+            code=$(echo "$out" | tail -n1)
+            if [ "$code" -ge 400 ]; then
+              echo "Trello returned $code: $(echo "$out" | sed '$d')" >&2
+              return 1
+            fi
+            echo "$out" | sed '$d'
+          }
+
+          # 1. Create the card
+          CARD=$(trello POST /cards \
             --data-urlencode "idList=$TRELLO_LIST_ID" \
             --data-urlencode "name=[$REPO] $TITLE" \
             --data-urlencode "desc=$BODY" \
             --data-urlencode "urlSource=$URL")
-          CODE=$(echo "$OUT" | tail -n1)
-          RESP=$(echo "$OUT" | sed '$d')
-          if [ "$CODE" -ge 400 ]; then
-            echo "Trello devolvió $CODE: $RESP"
-            exit 1
-          fi
-          echo "short=$(echo "$RESP" | jq -r .shortLink)" >> "$GITHUB_OUTPUT"
-          echo "url=$(echo "$RESP" | jq -r .shortUrl)" >> "$GITHUB_OUTPUT"
+          CARD_ID=$(echo "$CARD" | jq -r .id)
+          BOARD_ID=$(echo "$CARD" | jq -r .idBoard)
+          SHORT=$(echo "$CARD" | jq -r .shortLink)
+          CARD_URL=$(echo "$CARD" | jq -r .shortUrl)
 
-      - name: Comment card link on the issue
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARD_URL: ${{ steps.card.outputs.url }}
-          CARD_SHORT: ${{ steps.card.outputs.short }}
-        run: |
-          gh issue comment "${{ github.event.issue.number }}" \
-            --repo "${{ github.repository }}" \
-            --body "Trello card: $CARD_URL"$'\n'"Suggested branch name: \`feature/$CARD_SHORT-short-description\`"
+          # 2. Copy GitHub labels to the Trello card (create them on the board if missing)
+          BOARD_LABELS=$(trello GET "/boards/$BOARD_ID/labels" -G --data-urlencode "limit=1000")
+          IFS=',' read -ra NAMES <<< "$LABELS"
+          for NAME in "${NAMES[@]}"; do
+            [ -z "$NAME" ] && continue
+            LID=$(echo "$BOARD_LABELS" | jq -r --arg n "$NAME" \
+              '[.[] | select((.name | ascii_downcase) == ($n | ascii_downcase))][0].id // empty')
+            if [ -z "$LID" ]; then
+              LID=$(trello POST "/boards/$BOARD_ID/labels" \
+                --data-urlencode "name=$NAME" --data-urlencode "color=blue" | jq -r .id)
+            fi
+            trello POST "/cards/$CARD_ID/idLabels" --data-urlencode "value=$LID" > /dev/null
+          done
+
+          # 3. Create the branch: feature/<cardShortLink>-<title-slug>-<issueNumber>
+          SLUG=$(echo "$TITLE" | iconv -f utf8 -t ascii//TRANSLIT 2>/dev/null \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g' | cut -c1-40 | sed -E 's/-+$//')
+          BRANCH="feature/$SHORT-$SLUG-$NUMBER"
+          SHA=$(gh api "repos/$REPO/git/ref/heads/$DEFAULT_BRANCH" --jq .object.sha)
+          gh api "repos/$REPO/git/refs" -f ref="refs/heads/$BRANCH" -f sha="$SHA" > /dev/null
+
+          # 4. Attach the branch to the card (the create event doesn't fire for branches made by Actions)
+          trello POST "/cards/$CARD_ID/attachments" \
+            --data-urlencode "url=https://github.com/$REPO/tree/$BRANCH" \
+            --data-urlencode "name=Branch: $BRANCH" > /dev/null
+
+          # 5. Comment on the issue
+          gh issue comment "$NUMBER" --repo "$REPO" \
+            --body "Trello card: $CARD_URL"$'\n'"Branch created: \`$BRANCH\`"
