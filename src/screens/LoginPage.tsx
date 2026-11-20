@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import Field from '../components/Field';
 import GoogleSection from '../components/GoogleSection';
@@ -8,7 +9,6 @@ import { signInWithGoogle, supabase } from '../lib/supabase';
 import { validateEmail, validatePassword } from '../lib/validators';
 
 interface LoginPageProps {
-  onRegister: () => void;
   notify: (text: string) => void;
 }
 
@@ -17,7 +17,7 @@ interface LoginErrors {
   password?: string | null;
 }
 
-export default function LoginPage({ onRegister, notify }: LoginPageProps) {
+export default function LoginPage({ notify }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<LoginErrors>({});
@@ -43,7 +43,7 @@ export default function LoginPage({ onRegister, notify }: LoginPageProps) {
         password,
       });
       if (error) notify(error.message);
-      // On success, App's auth listener switches to the home page.
+      // On success, App's auth listener updates `session` and redirects to `/`.
     } catch {
       notify('Something went wrong. Please try again.');
     } finally {
@@ -73,13 +73,12 @@ export default function LoginPage({ onRegister, notify }: LoginPageProps) {
       footer={
         <>
           <span>Don&apos;t have an account?</span>
-          <button
-            type="button"
-            onClick={onRegister}
+          <Link
+            to="/register"
             className="ml-1 rounded px-2 py-2 font-bold text-primary active:bg-accent/40"
           >
             Register
-          </button>
+          </Link>
         </>
       }
     >

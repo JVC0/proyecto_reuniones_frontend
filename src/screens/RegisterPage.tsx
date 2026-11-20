@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import Field from '../components/Field';
 import GoogleSection from '../components/GoogleSection';
@@ -15,7 +16,6 @@ import { redirectUrl, signInWithGoogle, supabase } from '../lib/supabase';
 import { validateEmail, validatePassword } from '../lib/validators';
 
 interface RegisterPageProps {
-  onBack: () => void;
   notify: (text: string) => void;
 }
 
@@ -26,7 +26,8 @@ interface RegisterErrors {
   confirm?: string | null;
 }
 
-export default function RegisterPage({ onBack, notify }: RegisterPageProps) {
+export default function RegisterPage({ notify }: RegisterPageProps) {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -60,7 +61,7 @@ export default function RegisterPage({ onBack, notify }: RegisterPageProps) {
         notify(error.message);
       } else if (!data.session) {
         notify('Account created! Check your email to confirm it.');
-        onBack();
+        navigate('/login');
       }
     } catch {
       notify('Something went wrong. Please try again.');
@@ -90,26 +91,24 @@ export default function RegisterPage({ onBack, notify }: RegisterPageProps) {
       subtitle="Fill in your details to get started"
       header={
         <div className="px-2 pt-2">
-          <button
-            type="button"
-            onClick={onBack}
+          <Link
+            to="/login"
             aria-label="Back"
             className="flex h-12 w-12 items-center justify-center rounded-full text-dark active:bg-accent/40"
           >
             <BackIcon size={26} />
-          </button>
+          </Link>
         </div>
       }
       footer={
         <>
           <span>Already have an account?</span>
-          <button
-            type="button"
-            onClick={onBack}
+          <Link
+            to="/login"
             className="ml-1 rounded px-2 py-2 font-bold text-primary active:bg-accent/40"
           >
             Log in
-          </button>
+          </Link>
         </>
       }
     >
