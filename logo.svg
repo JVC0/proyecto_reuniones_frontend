@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <!-- Warm Cream Background Gradient (#FFF4CC to #FFE999) -->
+    <linearGradient id="bg-cream" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF4CC" />
+      <stop offset="100%" stop-color="#FFE999" />
+    </linearGradient>
+
+    <!-- Rich Dark Bronze/Olive Gradient for Primary Icon (#4F4110 to #826600) -->
+    <linearGradient id="dark-bronze" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F4110" />
+      <stop offset="100%" stop-color="#826600" />
+    </linearGradient>
+
+    <!-- Bright Gold Accent Gradient (#826600 to #E8CA5D) -->
+    <linearGradient id="accent-gold" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#826600" />
+      <stop offset="100%" stop-color="#E8CA5D" />
+    </linearGradient>
+  </defs>
+
+  <!-- App / Website Icon Rounded Background -->
+  <rect width="256" height="256" rx="56" fill="url(#bg-cream)" />
+
+  <!-- Subtle Outer Ring Accent (#E8CA5D) -->
+  <rect x="6" y="6" width="244" height="244" rx="50" fill="none" stroke="#E8CA5D" stroke-width="3" />
+
+  <!-- 1. Left Side: Audio Waveform (#826600) -->
+  <g stroke="#826600" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 32 128 L 46 128 L 55 104 L 65 152 L 75 90 L 85 158 L 94 112 L 101 128 L 109 128" />
+  </g>
+
+  <!-- 2. Center: Half Microphone Body (Dark Bronze #4F4110) -->
+  <g fill="url(#dark-bronze)">
+    <path d="M 134 60 C 117 60 107 71 107 87 L 107 135 C 107 151 117 162 134 162 Z" />
+  </g>
+
+  <!-- Microphone Grille Cutouts (matching light background) -->
+  <g fill="#FFF4CC">
+    <rect x="107" y="85" width="15" height="5.5" rx="2.75" />
+    <rect x="107" y="99" width="15" height="5.5" rx="2.75" />
+    <rect x="107" y="113" width="15" height="5.5" rx="2.75" />
+  </g>
+
+  <!-- Microphone Stand & Base (#4F4110) -->
+  <g stroke="#4F4110" stroke-width="7.5" stroke-linecap="round" fill="none">
+    <path d="M 96 132 C 96 157 112 174 134 174" />
+    <line x1="134" y1="174" x2="134" y2="194" />
+    <line x1="113" y1="194" x2="155" y2="194" />
+  </g>
+
+  <!-- 3. Right Side: Document Sheet (#4F4110 & #826600) -->
+  <g fill="#4F4110">
+    <!-- Top Header & Folded Corner -->
+    <path d="M 146 60 L 189 60 L 214 85 L 214 90 L 189 90 C 185 90 183 88 183 84 L 183 67 L 146 67 Z" />
+    <!-- Folded Corner Triangle in Gold (#E8CA5D) -->
+    <polygon points="189,60 189,84 212,84" fill="#E8CA5D" />
+
+    <!-- Transcribed Text Lines -->
+    <rect x="146" y="77" width="29" height="6.5" rx="3.25" />
+    <rect x="146" y="94" width="55" height="6.5" rx="3.25" />
+    <rect x="146" y="109" width="68" height="6.5" rx="3.25" />
+    <rect x="146" y="124" width="68" height="6.5" rx="3.25" />
+    
+    <!-- Split Lines -->
+    <rect x="165" y="139" width="22" height="6.5" rx="3.25" />
+    <rect x="193" y="139" width="21" height="6.5" rx="3.25" />
+    
+    <rect x="165" y="154" width="49" height="6.5" rx="3.25" />
+    
+    <rect x="155" y="169" width="32" height="6.5" rx="3.25" />
+    <rect x="193" y="169" width="21" height="6.5" rx="3.25" />
+
+    <!-- Bottom Document Edge -->
+    <path d="M 146 188 L 214 188 C 214 192 211 194 207 194 L 146 194 Z" />
+  </g>
+
+  <!-- 4. Transformation Arrow (Rich Gold #826600 to #E8CA5D) -->
+  <g fill="url(#accent-gold)">
+    <path d="M 97 149 C 101 176 128 180 155 153 L 161 159 L 166 136 L 143 141 L 149 147 C 128 167 107 165 97 149 Z" />
+  </g>
+</svg>
