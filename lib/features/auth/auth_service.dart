@@ -5,12 +5,15 @@ class AuthService {
   AuthService._();
 
   static const String mobileRedirect =
-      'https://vxagataaejcqsrojdniw.supabase.co/auth/v1/callback';
+      'io.supabase.reuniones://login-callback/';
+
+  static String get redirectUrl =>
+      kIsWeb ? '${Uri.base.origin}${Uri.base.path}' : mobileRedirect;
 
   static Future<bool> signInWithGoogle() {
     return Supabase.instance.client.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb ? null : mobileRedirect,
+      redirectTo: redirectUrl,
     );
   }
 }
