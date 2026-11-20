@@ -3,7 +3,6 @@ import 'package:proyecto_empresa/core/app_colors.dart';
 import 'package:proyecto_empresa/features/views/loginScreen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Placeholder home page: replace with your real one.
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 

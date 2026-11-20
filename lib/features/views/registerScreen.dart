@@ -30,7 +30,6 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void initState() {
     super.initState();
-    // Google sign-in finishes in the browser / deep link, so we react to it here.
     _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       if (_awaitingGoogle &&
           data.event == AuthChangeEvent.signedIn &&
@@ -59,7 +58,6 @@ class _RegisterPageState extends State<RegisterPage> {
       _awaitingGoogle = false;
       _showMessage('Google sign-in failed. Please try again.');
     } finally {
-      // The browser is open now; let the user retry if they close it.
       if (mounted) setState(() => _googleLoading = false);
     }
   }
@@ -88,7 +86,6 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
 
       if (res.session != null) {
-        // Email confirmation is disabled in Supabase: user is already logged in.
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const HomePage()),
           (route) => false,

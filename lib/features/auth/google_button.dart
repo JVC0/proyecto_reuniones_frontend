@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:proyecto_empresa/core/app_colors.dart';
 
-/// "or" divider + "Continue with Google" button, shared by login and register.
 class GoogleSection extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool loading;
